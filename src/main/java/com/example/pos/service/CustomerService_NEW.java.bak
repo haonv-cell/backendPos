@@ -24,23 +24,26 @@ public class CustomerService {
     
     @Transactional(readOnly = true)
     public CustomerListResponse getCustomers(int page, int size, String search, String status, String sortBy, String sortDir) {
+        // Convert camelCase to snake_case for database column names
+        String dbSortBy = convertToSnakeCase(sortBy);
+
         // Create sort object
-        Sort sort = sortDir.equalsIgnoreCase("desc") 
-            ? Sort.by(sortBy).descending() 
-            : Sort.by(sortBy).ascending();
-        
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+            ? Sort.by(dbSortBy).descending()
+            : Sort.by(dbSortBy).ascending();
+
         // Create pageable object
         Pageable pageable = PageRequest.of(page, size, sort);
-        
+
         // Fetch customers based on filters
         Page<User> customerPage;
-        
+
         if (search != null && !search.trim().isEmpty()) {
             // Search with or without status filter
             if (status != null && !status.trim().isEmpty()) {
-                customerPage = userRepository.searchCustomersByStatus(Role.CUSTOMER, status, search.trim(), pageable);
+                customerPage = userRepository.searchCustomersByStatus("customer", status, search.trim(), pageable);
             } else {
-                customerPage = userRepository.searchCustomers(Role.CUSTOMER, search.trim(), pageable);
+                customerPage = userRepository.searchCustomers("customer", search.trim(), pageable);
             }
         } else {
             // No search, just filter by status or get all
@@ -78,6 +81,25 @@ public class CustomerService {
             .imageUrl(user.getImageUrl())
             .createdAt(user.getCreatedAt())
             .build();
+    }
+
+    /**
+     * Convert camelCase to snake_case for database column names
+     */
+    private String convertToSnakeCase(String camelCase) {
+        if (camelCase == null || camelCase.isEmpty()) {
+            return "created_at"; // default
+        }
+
+        // Map common field names
+        return switch (camelCase) {
+            case "createdAt" -> "created_at";
+            case "updatedAt" -> "updated_at";
+            case "imageUrl" -> "image_url";
+            case "companyName" -> "company_name";
+            case "emailVerified" -> "email_verified";
+            default -> camelCase; // name, email, phone, country, status, code, id
+        };
     }
 }
 

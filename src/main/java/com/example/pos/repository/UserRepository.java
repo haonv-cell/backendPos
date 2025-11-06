@@ -29,41 +29,22 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Page<User> findByRoleAndStatus(Role role, String status, Pageable pageable);
 
     // Search customers by name, email, code, phone, or country with pagination
-    // Using native query with ILIKE for case-insensitive search in PostgreSQL
-    @Query(value = "SELECT * FROM users u WHERE u.role = :role AND " +
-           "(u.name ILIKE CONCAT('%', :search, '%') OR " +
-           "u.email ILIKE CONCAT('%', :search, '%') OR " +
-           "u.code ILIKE CONCAT('%', :search, '%') OR " +
-           "u.phone ILIKE CONCAT('%', :search, '%') OR " +
-           "u.country ILIKE CONCAT('%', :search, '%'))",
-           countQuery = "SELECT COUNT(*) FROM users u WHERE u.role = :role AND " +
-           "(u.name ILIKE CONCAT('%', :search, '%') OR " +
-           "u.email ILIKE CONCAT('%', :search, '%') OR " +
-           "u.code ILIKE CONCAT('%', :search, '%') OR " +
-           "u.phone ILIKE CONCAT('%', :search, '%') OR " +
-           "u.country ILIKE CONCAT('%', :search, '%'))",
-           nativeQuery = true)
-    Page<User> searchCustomers(@Param("role") String role,
-                               @Param("search") String search,
-                               Pageable pageable);
-
+    @Query("SELECT u FROM User u WHERE u.role = :role AND " +
+           "(LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(u.code) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(u.phone) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(u.country) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<User> searchCustomers(@Param("role") Role role, @Param("search") String search, Pageable pageable);
+    
     // Search customers by status and search term with pagination
-    @Query(value = "SELECT * FROM users u WHERE u.role = :role AND u.status = :status AND " +
-           "(u.name ILIKE CONCAT('%', :search, '%') OR " +
-           "u.email ILIKE CONCAT('%', :search, '%') OR " +
-           "u.code ILIKE CONCAT('%', :search, '%') OR " +
-           "u.phone ILIKE CONCAT('%', :search, '%') OR " +
-           "u.country ILIKE CONCAT('%', :search, '%'))",
-           countQuery = "SELECT COUNT(*) FROM users u WHERE u.role = :role AND u.status = :status AND " +
-           "(u.name ILIKE CONCAT('%', :search, '%') OR " +
-           "u.email ILIKE CONCAT('%', :search, '%') OR " +
-           "u.code ILIKE CONCAT('%', :search, '%') OR " +
-           "u.phone ILIKE CONCAT('%', :search, '%') OR " +
-           "u.country ILIKE CONCAT('%', :search, '%'))",
-           nativeQuery = true)
-    Page<User> searchCustomersByStatus(@Param("role") String role,
-                                        @Param("status") String status,
-                                        @Param("search") String search,
-                                        Pageable pageable);
+    @Query("SELECT u FROM User u WHERE u.role = :role AND u.status = :status AND " +
+           "(LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(u.code) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(u.phone) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(u.country) LIKE LOWER(CONCAT('%', :search, '%')))")
+    Page<User> searchCustomersByStatus(@Param("role") Role role, @Param("status") String status, 
+                                        @Param("search") String search, Pageable pageable);
 }
 

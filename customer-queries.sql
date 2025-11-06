@@ -59,7 +59,6 @@ WHERE role = 'customer'
 -- 3. TÌM KIẾM CUSTOMERS (SEARCH)
 -- Tương đương: searchCustomers(Role.CUSTOMER, "Carl", pageable)
 -- API: GET /api/customers?search=Carl&page=0&size=10
--- Sử dụng ILIKE để tìm kiếm không phân biệt hoa/thường (PostgreSQL)
 
 SELECT
     id,
@@ -74,28 +73,25 @@ SELECT
 FROM users
 WHERE role = 'customer'
   AND (
-    name ILIKE '%Carl%' OR
-    email ILIKE '%Carl%' OR
-    code ILIKE '%Carl%' OR
-    phone ILIKE '%Carl%' OR
-    country ILIKE '%Carl%'
+    LOWER(name) LIKE LOWER('%Carl%') OR
+    LOWER(email) LIKE LOWER('%Carl%') OR
+    LOWER(code) LIKE LOWER('%Carl%') OR
+    LOWER(phone) LIKE LOWER('%Carl%') OR
+    LOWER(country) LIKE LOWER('%Carl%')
   )
 ORDER BY created_at DESC
 LIMIT 10 OFFSET 0;
-
--- Ví dụ: Tìm "admin" sẽ match với "Admin abc", "ADMIN", "admin user"
--- name ILIKE '%admin%' sẽ tìm thấy: "Admin abc", "admin user", "ADMIN"
 
 -- Đếm kết quả tìm kiếm
 SELECT COUNT(*)
 FROM users
 WHERE role = 'customer'
   AND (
-    name ILIKE '%Carl%' OR
-    email ILIKE '%Carl%' OR
-    code ILIKE '%Carl%' OR
-    phone ILIKE '%Carl%' OR
-    country ILIKE '%Carl%'
+    LOWER(name) LIKE LOWER('%Carl%') OR
+    LOWER(email) LIKE LOWER('%Carl%') OR
+    LOWER(code) LIKE LOWER('%Carl%') OR
+    LOWER(phone) LIKE LOWER('%Carl%') OR
+    LOWER(country) LIKE LOWER('%Carl%')
   );
 
 
@@ -118,11 +114,11 @@ FROM users
 WHERE role = 'customer'
   AND status = 'active'
   AND (
-    name ILIKE '%Robert%' OR
-    email ILIKE '%Robert%' OR
-    code ILIKE '%Robert%' OR
-    phone ILIKE '%Robert%' OR
-    country ILIKE '%Robert%'
+    LOWER(name) LIKE LOWER('%Robert%') OR
+    LOWER(email) LIKE LOWER('%Robert%') OR
+    LOWER(code) LIKE LOWER('%Robert%') OR
+    LOWER(phone) LIKE LOWER('%Robert%') OR
+    LOWER(country) LIKE LOWER('%Robert%')
   )
 ORDER BY created_at DESC
 LIMIT 10 OFFSET 0;
@@ -133,11 +129,11 @@ FROM users
 WHERE role = 'customer'
   AND status = 'active'
   AND (
-    name ILIKE '%Robert%' OR
-    email ILIKE '%Robert%' OR
-    code ILIKE '%Robert%' OR
-    phone ILIKE '%Robert%' OR
-    country ILIKE '%Robert%'
+    LOWER(name) LIKE LOWER('%Robert%') OR
+    LOWER(email) LIKE LOWER('%Robert%') OR
+    LOWER(code) LIKE LOWER('%Robert%') OR
+    LOWER(phone) LIKE LOWER('%Robert%') OR
+    LOWER(country) LIKE LOWER('%Robert%')
   );
 
 
@@ -238,11 +234,11 @@ SELECT
 FROM users
 WHERE role = 'customer'
   AND (
-    name ILIKE '%Germany%' OR
-    email ILIKE '%Germany%' OR
-    code ILIKE '%Germany%' OR
-    phone ILIKE '%Germany%' OR
-    country ILIKE '%Germany%'
+    LOWER(name) LIKE LOWER('%Germany%') OR
+    LOWER(email) LIKE LOWER('%Germany%') OR
+    LOWER(code) LIKE LOWER('%Germany%') OR
+    LOWER(phone) LIKE LOWER('%Germany%') OR
+    LOWER(country) LIKE LOWER('%Germany%')
   )
 ORDER BY created_at DESC
 LIMIT 10 OFFSET 0;
@@ -265,11 +261,11 @@ SELECT
 FROM users
 WHERE role = 'customer'
   AND (
-    name ILIKE '%+1216%' OR
-    email ILIKE '%+1216%' OR
-    code ILIKE '%+1216%' OR
-    phone ILIKE '%+1216%' OR
-    country ILIKE '%+1216%'
+    LOWER(name) LIKE LOWER('%+1216%') OR
+    LOWER(email) LIKE LOWER('%+1216%') OR
+    LOWER(code) LIKE LOWER('%+1216%') OR
+    LOWER(phone) LIKE LOWER('%+1216%') OR
+    LOWER(country) LIKE LOWER('%+1216%')
   )
 ORDER BY created_at DESC
 LIMIT 10 OFFSET 0;
