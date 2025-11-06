@@ -1,0 +1,111 @@
+### Test Customer List API
+
+### 1. Register an Admin user first (if not exists)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Admin User",
+  "email": "admin@example.com",
+  "password": "Admin123!",
+  "role": "ADMIN"
+}
+
+### 2. Login as Admin to get JWT token
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "Admin123!"
+}
+
+### 3. Register some customer users for testing
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Carl Evans",
+  "email": "carlevans@example.com",
+  "password": "Customer123!",
+  "phone": "+12163547758",
+  "country": "Germany",
+  "role": "CUSTOMER"
+}
+
+###
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Minerva Ramertz",
+  "email": "ramertz@example.com",
+  "password": "Customer123!",
+  "phone": "+11367529510",
+  "country": "Japan",
+  "role": "CUSTOMER"
+}
+
+###
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Robert Lamon",
+  "email": "robert@example.com",
+  "password": "Customer123!",
+  "phone": "+15362789414",
+  "country": "USA",
+  "role": "CUSTOMER"
+}
+
+### 4. Get all customers (page 0, size 10) - ADMIN ONLY
+# Replace YOUR_ADMIN_JWT_TOKEN with the token from step 2
+GET http://localhost:8080/api/customers?page=0&size=10
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### 5. Get customers with search (search by name)
+GET http://localhost:8080/api/customers?page=0&size=10&search=Carl
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### 6. Get customers filtered by status
+GET http://localhost:8080/api/customers?page=0&size=10&status=active
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### 7. Get customers with search and status filter
+GET http://localhost:8080/api/customers?page=0&size=10&search=Robert&status=active
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### 8. Get customers sorted by name ascending
+GET http://localhost:8080/api/customers?page=0&size=10&sortBy=name&sortDir=asc
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### 9. Get customers page 2
+GET http://localhost:8080/api/customers?page=1&size=10
+Authorization: Bearer YOUR_ADMIN_JWT_TOKEN
+
+### 10. Test with non-admin user (should fail with 403 Forbidden)
+# First register a customer user
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Regular Customer",
+  "email": "customer@example.com",
+  "password": "Customer123!",
+  "role": "CUSTOMER"
+}
+
+### Login as customer
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "customer@example.com",
+  "password": "Customer123!"
+}
+
+### Try to access customer list (should fail)
+GET http://localhost:8080/api/customers?page=0&size=10
+Authorization: Bearer YOUR_CUSTOMER_JWT_TOKEN
+
