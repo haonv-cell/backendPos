@@ -1,8 +1,10 @@
 package com.example.pos.exception;
 
 import com.example.pos.dto.ApiResponse;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -41,15 +43,37 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
         response.put("message", "Validation failed");
         response.put("errors", errors);
-        
+
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
-    
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", false);
+
+        String message = ex.getMessage();
+
+        // Extract field name from UnrecognizedPropertyException
+        if (ex.getCause() instanceof UnrecognizedPropertyException) {
+            UnrecognizedPropertyException upe = (UnrecognizedPropertyException) ex.getCause();
+            String fieldName = upe.getPropertyName();
+
+            response.put("message", "Field '" + fieldName + "' is not allowed to be updated");
+            response.put("field", fieldName);
+            response.put("hint", "Only these fields can be updated: name, phone, country, companyName, role, status, imageUrl");
+        } else {
+            response.put("message", "Invalid request format: " + message);
+        }
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGlobalException(Exception ex) {
         ApiResponse response = new ApiResponse(false, "An error occurred: " + ex.getMessage());

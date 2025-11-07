@@ -10,7 +10,6 @@ import com.example.pos.entity.User;
 import com.example.pos.exception.BadRequestException;
 import com.example.pos.repository.UserRepository;
 import com.example.pos.security.JwtTokenProvider;
-import com.example.pos.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,20 +32,37 @@ public class AuthService {
     
     @Transactional
     public AuthResponse login(LoginRequest loginRequest) {
+        // Find user first to validate provider
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+            .orElseThrow(() -> new BadRequestException("Invalid email or password"));
+
+        // Validate provider: Only LOCAL users can login with email/password
+        if (user.getProvider() != AuthProvider.LOCAL) {
+            throw new BadRequestException(
+                "This account is registered with " + user.getProvider() +
+                ". Please use '" + user.getProvider() + "' to login."
+            );
+        }
+
+        // Validate data integrity: LOCAL account must have password
+        if (user.getPasswordHash() == null) {
+            throw new BadRequestException(
+                "Invalid account state: Local account is missing password. " +
+                "Please contact support or reset your password."
+            );
+        }
+
+        // Authenticate
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(),
                 loginRequest.getPassword()
             )
         );
-        
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication);
-        
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        User user = userRepository.findById(userPrincipal.getId())
-            .orElseThrow(() -> new BadRequestException("User not found"));
-        
+
         return AuthResponse.builder()
             .accessToken(token)
             .user(convertToDTO(user))

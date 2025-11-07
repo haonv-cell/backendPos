@@ -48,11 +48,30 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         
         if (userOptional.isPresent()) {
             user = userOptional.get();
+
+            // Validate provider matches
             if (!user.getProvider().equals(AuthProvider.valueOf(registrationId.toUpperCase()))) {
                 throw new BadRequestException("Looks like you're signed up with " +
                     user.getProvider() + " account. Please use your " + user.getProvider() +
                     " account to login.");
             }
+
+            // Validate data integrity: OAuth account must have provider_id
+            if (user.getProviderId() == null) {
+                throw new BadRequestException(
+                    "Invalid account state: OAuth account (provider=" + user.getProvider() +
+                    ") is missing provider_id. Please contact support."
+                );
+            }
+
+            // Validate provider_id matches (prevent account hijacking)
+            if (!user.getProviderId().equals(oAuth2UserInfo.getId())) {
+                throw new BadRequestException(
+                    "Provider ID mismatch. This email is already associated with another " +
+                    registrationId + " account."
+                );
+            }
+
             user = updateExistingUser(user, oAuth2UserInfo);
         } else {
             user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);

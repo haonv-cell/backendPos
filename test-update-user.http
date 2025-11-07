@@ -1,0 +1,223 @@
+### Test Admin Update User API
+### Endpoint: PUT /api/users/{id}
+
+### 1. Login as Admin first to get token
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+
+### 2. Get user by ID (to see current data)
+GET http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+
+### 3. Update user - Full update (all fields)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Updated User Name",
+  "phone": "0987654321",
+  "country": "Vietnam",
+  "companyName": "New Company Ltd",
+  "role": "STORE_OWNER",
+  "status": "active",
+  "imageUrl": "https://example.com/new-avatar.jpg"
+}
+
+### 4. Update user - Partial update (only name and phone)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "John Doe Updated",
+  "phone": "0123456789"
+}
+
+### 5. Update user - Change role to ADMIN
+PUT http://localhost:8080/api/users/2
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "role": "ADMIN"
+}
+
+### 6. Update user - Change status to inactive
+PUT http://localhost:8080/api/users/2
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "inactive"
+}
+
+### 7. Update user - Clear optional fields (set to null)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "phone": null,
+  "country": null,
+  "companyName": null,
+  "imageUrl": null
+}
+
+### 8. Test validation - Invalid status (should fail)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "invalid_status"
+}
+
+### 9. Test validation - Name too long (should fail)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "This is a very long name that exceeds the maximum allowed length of 100 characters and should fail validation test"
+}
+
+### 10. Test validation - Phone too long (should fail)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "phone": "012345678901234567890123456789"
+}
+
+### 11. Test authorization - Update without token (should fail with 401)
+PUT http://localhost:8080/api/users/1
+Content-Type: application/json
+
+{
+  "name": "Unauthorized Update"
+}
+
+### 12. Test authorization - Update with non-admin token (should fail with 403)
+# First login as regular user
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "user123"
+}
+
+# Then try to update (should fail)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_USER_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Forbidden Update"
+}
+
+### 13. Test not found - Update non-existent user (should fail with 404)
+PUT http://localhost:8080/api/users/99999
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Non Existent User"
+}
+
+### 14. Test unknown fields - Try to edit protected fields (should fail with 400)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "name": "Updated Name",
+  "email": "newemail@example.com",
+  "provider": "GOOGLE"
+}
+
+### 15. Test unknown fields - Try to edit id (should fail with 400)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "id": 999,
+  "name": "Hacker"
+}
+
+### 16. Test unknown fields - Try to edit password_hash (should fail with 400)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "password_hash": "hacked_password",
+  "name": "Hacker"
+}
+
+### 17. Test unknown fields - Try to edit provider_id (should fail with 400)
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "provider_id": "123456",
+  "name": "Hacker"
+}
+
+### 18. Get all users to verify updates
+GET http://localhost:8080/api/users/all
+
+### 19. Update user with all valid roles
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "role": "CUSTOMER"
+}
+
+###
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "role": "BILLER"
+}
+
+###
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "role": "SUPPLIER"
+}
+
+###
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "role": "STORE_OWNER"
+}
+
+###
+PUT http://localhost:8080/api/users/1
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "role": "ADMIN"
+}
+

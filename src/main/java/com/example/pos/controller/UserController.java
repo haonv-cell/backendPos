@@ -1,9 +1,11 @@
 package com.example.pos.controller;
 
+import com.example.pos.dto.UpdateUserRequest;
 import com.example.pos.dto.UserDTO;
 import com.example.pos.entity.User;
 import com.example.pos.repository.UserRepository;
 import com.example.pos.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +35,15 @@ public class UserController {
     public ResponseEntity<UserDTO> getUserById(@PathVariable Integer id) {
         UserDTO user = userService.getUserById(id);
         return ResponseEntity.ok(user);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDTO> updateUser(
+            @PathVariable Integer id,
+            @Valid @RequestBody UpdateUserRequest request) {
+        UserDTO updatedUser = userService.updateUser(id, request);
+        return ResponseEntity.ok(updatedUser);
     }
 
     // Endpoint để kiểm tra tất cả users trong database (public - để debug)
