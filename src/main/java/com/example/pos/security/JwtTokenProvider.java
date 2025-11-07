@@ -45,7 +45,7 @@ public class JwtTokenProvider {
     public String generateTokenFromUserId(Integer userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
-        
+
         return Jwts.builder()
             .setSubject(String.valueOf(userId))
             .setIssuedAt(now)
@@ -53,7 +53,44 @@ public class JwtTokenProvider {
             .signWith(getSigningKey(), SignatureAlgorithm.HS512)
             .compact();
     }
-    
+
+    public String generatePasswordResetToken(Integer userId, String email) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + 15 * 60 * 1000);
+
+        return Jwts.builder()
+            .setSubject(String.valueOf(userId))
+            .claim("email", email)
+            .claim("type", "password_reset")
+            .setIssuedAt(now)
+            .setExpiration(expiryDate)
+            .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+            .compact();
+    }
+
+    public Integer validatePasswordResetToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+            String tokenType = claims.get("type", String.class);
+            if (!"password_reset".equals(tokenType)) {
+                throw new IllegalArgumentException("Invalid token type");
+            }
+
+            return Integer.parseInt(claims.getSubject());
+        } catch (ExpiredJwtException ex) {
+            logger.error("Reset token has expired");
+            throw new IllegalArgumentException("Reset token has expired");
+        } catch (Exception ex) {
+            logger.error("Invalid reset token: {}", ex.getMessage());
+            throw new IllegalArgumentException("Invalid reset token");
+        }
+    }
+
     public Integer getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
             .setSigningKey(getSigningKey())
