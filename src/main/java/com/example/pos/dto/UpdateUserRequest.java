@@ -26,6 +26,7 @@ public class UpdateUserRequest {
     @Size(max = 150, message = "Company name must not exceed 150 characters")
     private String companyName;
     
+    
     private Role role;
     
     @Pattern(regexp = "^(active|inactive)$", message = "Status must be either 'active' or 'inactive'")

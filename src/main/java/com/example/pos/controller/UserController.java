@@ -1,5 +1,6 @@
 package com.example.pos.controller;
 
+import com.example.pos.dto.MessageResponse;
 import com.example.pos.dto.UpdateUserRequest;
 import com.example.pos.dto.UserDTO;
 import com.example.pos.entity.User;
@@ -45,7 +46,16 @@ public class UserController {
         UserDTO updatedUser = userService.updateUser(id, request);
         return ResponseEntity.ok(updatedUser);
     }
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageResponse> deleteUser(@PathVariable Integer id) {
 
+        // 1. Gọi service, giờ đây nó sẽ trả về MessageResponse
+        MessageResponse response = userService.deleteUser(id);
+
+        // 2. Trả về HTTP 200 OK cùng với message body
+        return ResponseEntity.ok(response);
+    }
     // Endpoint để kiểm tra tất cả users trong database (public - để debug)
     @GetMapping("/all")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
@@ -77,5 +87,6 @@ public class UserController {
         long count = userRepository.count();
         return ResponseEntity.ok(count);
     }
+    
 }
 

@@ -13,7 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
+import com.example.pos.dto.MessageResponse;
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -25,7 +25,9 @@ public class UserService {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         User user = userRepository.findById(userPrincipal.getId())
             .orElseThrow(() -> new ResourceNotFoundException("User", "id", userPrincipal.getId()));
-
+        if ("DELETED".equalsIgnoreCase(user.getStatus())) {
+        throw new ResourceNotFoundException("User", "id", userPrincipal.getId());
+    }
         return convertToDTO(user);
     }
 
@@ -33,8 +35,27 @@ public class UserService {
     public UserDTO getUserById(Integer id) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-
+        if ("DELETED".equalsIgnoreCase(user.getStatus())) {
+        throw new ResourceNotFoundException("User", "id", id);
+    }
         return convertToDTO(user);
+    }
+    /**
+     * Thực hiện Xoá Mềm (Soft Delete) một user.
+     * @param id ID của user cần xoá
+     */
+    @Transactional
+    public MessageResponse deleteUser(Integer id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+
+        // Đặt trạng thái thành DELETED
+        user.setStatus("DELETED");
+
+        userRepository.save(user);
+
+        // Trả về message thành công
+        return MessageResponse.of("Đã xoá thành công user với ID: " + id);
     }
 
     @Transactional

@@ -19,65 +19,79 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
-    
+
     private final UserRepository userRepository;
-    
+
     @Transactional(readOnly = true)
-    public CustomerListResponse getCustomers(int page, int size, String search, String status, String sortBy, String sortDir) {
-        // Create sort object
-        Sort sort = sortDir.equalsIgnoreCase("desc") 
-            ? Sort.by(sortBy).descending() 
-            : Sort.by(sortBy).ascending();
-        
-        // Create pageable object
+    public CustomerListResponse getCustomers(int page, int size, String search, String status, String sortBy,
+            String sortDir) {
+        Sort sort = sortDir.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
         Pageable pageable = PageRequest.of(page, size, sort);
-        
-        // Fetch customers based on filters
+
         Page<User> customerPage;
-        
-        if (search != null && !search.trim().isEmpty()) {
-            // Search with or without status filter
-            if (status != null && !status.trim().isEmpty()) {
-                customerPage = userRepository.searchCustomersByStatus(Role.CUSTOMER, status, search.trim(), pageable);
+
+        // Biến lưu trữ status sạch
+        String cleanStatus = (status != null && !status.trim().isEmpty()) ? status.trim() : null;
+
+        // --- FIX LỖ HỔNG BẢO MẬT ---
+        // Nếu ai đó cố tình tìm user đã bị xoá, ta trả về trang rỗng
+        if ("DELETED".equalsIgnoreCase(cleanStatus)) {
+            customerPage = Page.empty(pageable); // Trả về trang rỗng
+        }
+        // --- HẾT PHẦN FIX ---
+
+        else if (search != null && !search.trim().isEmpty()) {
+            // Có search
+            if (cleanStatus != null) {
+                // Case 1: Có search VÀ có status (status này đã được đảm bảo KHÁC "DELETED")
+                // (Giả sử searchCustomersByStatus cũng đã được fix @Query trong Repo)
+                customerPage = userRepository.searchCustomersByStatus(Role.CUSTOMER, cleanStatus, search.trim(),
+                        pageable);
             } else {
+                // Case 2: Có search, KHÔNG có status
+                // (Phải đảm bảo searchCustomers trong Repo đã fix @Query)
                 customerPage = userRepository.searchCustomers(Role.CUSTOMER, search.trim(), pageable);
             }
         } else {
-            // No search, just filter by status or get all
-            if (status != null && !status.trim().isEmpty()) {
-                customerPage = userRepository.findByRoleAndStatus(Role.CUSTOMER, status, pageable);
+            // Không search
+            if (cleanStatus != null) {
+                // Case 3: KHÔNG search, CÓ status (status này đã được đảm bảo KHÁC "DELETED")
+                customerPage = userRepository.findByRoleAndStatus(Role.CUSTOMER, cleanStatus, pageable);
             } else {
-                customerPage = userRepository.findByRole(Role.CUSTOMER, pageable);
+                // Case 4: KHÔNG search, KHÔNG status (Đã fix chính xác)
+                customerPage = userRepository.findByRoleAndStatusNot(Role.CUSTOMER, "DELETED", pageable);
             }
         }
-        
+
         // Convert to DTOs
         List<CustomerDTO> customers = customerPage.getContent().stream()
-            .map(this::convertToDTO)
-            .collect(Collectors.toList());
-        
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+
         // Build response
         return CustomerListResponse.builder()
-            .customers(customers)
-            .totalElements(customerPage.getTotalElements())
-            .totalPages(customerPage.getTotalPages())
-            .currentPage(customerPage.getNumber())
-            .pageSize(customerPage.getSize())
-            .build();
+                .customers(customers)
+                .totalElements(customerPage.getTotalElements())
+                .totalPages(customerPage.getTotalPages())
+                .currentPage(customerPage.getNumber())
+                .pageSize(customerPage.getSize())
+                .build();
     }
-    
+
     private CustomerDTO convertToDTO(User user) {
         return CustomerDTO.builder()
-            .id(user.getId())
-            .code(user.getCode())
-            .name(user.getName())
-            .email(user.getEmail())
-            .phone(user.getPhone())
-            .country(user.getCountry())
-            .status(user.getStatus())
-            .imageUrl(user.getImageUrl())
-            .createdAt(user.getCreatedAt())
-            .build();
+                .id(user.getId())
+                .code(user.getCode())
+                .name(user.getName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .country(user.getCountry())
+                .status(user.getStatus())
+                .imageUrl(user.getImageUrl())
+                .createdAt(user.getCreatedAt())
+                .build();
     }
 }
-
