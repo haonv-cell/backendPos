@@ -1,8 +1,12 @@
 package com.example.pos.controller;
 
+import com.example.pos.dto.CreateCustomerRequest;
+import com.example.pos.dto.CustomerDTO;
 import com.example.pos.dto.CustomerListResponse;
 import com.example.pos.service.CustomerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +42,13 @@ public class CustomerController {
     ) {
         CustomerListResponse response = customerService.getCustomers(page, size, search, status, sortBy, sortDir);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<CustomerDTO> createCustomer(@Valid @RequestBody CreateCustomerRequest request) {
+        CustomerDTO customerDTO = customerService.createCustomer(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerDTO);
     }
 }
 

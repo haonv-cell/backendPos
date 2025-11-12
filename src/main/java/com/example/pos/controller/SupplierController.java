@@ -1,8 +1,12 @@
 package com.example.pos.controller;
 
+import com.example.pos.dto.CreateSupplierRequest;
+import com.example.pos.dto.SupplierDTO;
 import com.example.pos.dto.SupplierListResponse;
 import com.example.pos.service.SupplierService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +42,13 @@ public class SupplierController {
     ) {
         SupplierListResponse response = supplierService.getSuppliers(page, size, search, status, sortBy, sortDir);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SupplierDTO> createSupplier(@Valid @RequestBody CreateSupplierRequest request) {
+        SupplierDTO supplierDTO = supplierService.createSupplier(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(supplierDTO);
     }
 }
 

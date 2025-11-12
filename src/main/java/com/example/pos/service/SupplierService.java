@@ -1,5 +1,6 @@
 package com.example.pos.service;
 
+import com.example.pos.dto.CreateSupplierRequest;
 import com.example.pos.dto.SupplierDTO;
 import com.example.pos.dto.SupplierListResponse;
 import com.example.pos.entity.Supplier;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,6 +62,22 @@ public class SupplierService {
                 .currentPage(supplierPage.getNumber())
                 .pageSize(supplierPage.getSize())
                 .build();
+    }
+
+    @Transactional
+    public SupplierDTO createSupplier(CreateSupplierRequest request) {
+        Supplier supplier = Supplier.builder()
+                .name(request.getName())
+                .contactEmail(request.getEmail())
+                .contactPhone(request.getPhone())
+                .address(request.getCountry() != null ? request.getCountry() : null)
+                .status("active")
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        Supplier savedSupplier = supplierRepository.save(supplier);
+        return convertToDTO(savedSupplier);
     }
 
     private SupplierDTO convertToDTO(Supplier supplier) {

@@ -1,8 +1,12 @@
 package com.example.pos.controller;
 
+import com.example.pos.dto.BillerDTO;
 import com.example.pos.dto.BillerListResponse;
+import com.example.pos.dto.CreateBillerRequest;
 import com.example.pos.service.BillerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +42,13 @@ public class BillerController {
     ) {
         BillerListResponse response = billerService.getBillers(page, size, search, status, sortBy, sortDir);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BillerDTO> createBiller(@Valid @RequestBody CreateBillerRequest request) {
+        BillerDTO billerDTO = billerService.createBiller(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(billerDTO);
     }
 }
 
