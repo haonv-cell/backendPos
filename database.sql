@@ -343,3 +343,100 @@ create table password_reset_otps
 alter table password_reset_otps
     owner to postgres;
 
+yêu cầu:Chi tiết 4 Endpoints
+1. CREATE (Thêm kho mới)
+Endpoint: POST /api/warehouses
+
+Input: WarehouseRequest
+
+Validation:
+
+name không được rỗng.
+
+userId không được rỗng và phải tồn tại trong bảng users. Nếu không, trả về 400 Bad Request.
+
+Logic:
+
+Tạo entity Warehouse mới từ DTO.
+
+Gán giá trị mặc định: status = 'active', totalProducts = 0, stock = 0.
+
+Lưu vào database.
+
+Response: 201 Created - Trả về WarehouseResponse của kho vừa tạo.
+
+2. READ (Lấy danh sách kho - cho màn hình chính)
+Endpoint: GET /api/warehouses
+
+Parameters:
+
+page (int): Số trang (cho phân trang).
+
+size (int): Kích thước trang (cho phân trang).
+search: name,Sting contactPerson, , stock (đọc từ DB)
+sortBy (String): Tên cột để sắp xếp (ví dụ: stock, name, createdOn).
+
+sortDir (String): asc hoặc desc.
+
+status (String, optional): Lọc theo status (ví dụ: active, inactive).
+
+Logic:
+
+Xây dựng query (ví dụ: Specification hoặc JPQL).
+
+Bắt buộc: Luôn JOIN với bảng users (u) qua warehouses.user_id = u.id để lấy u.name và gán vào managingUserName.
+
+Bắt buộc: Luôn có điều kiện WHERE status != 'DELETE'.
+
+Áp dụng các tham số lọc, sắp xếp, và phân trang.
+
+Response: 200 OK - Trả về đối tượng Page<WarehouseResponse> (bao gồm danh sách kho và thông tin phân trang).
+
+3. UPDATE (Cập nhật thông tin kho)
+Endpoint: PUT /api/warehouses/{id}
+
+Input: WarehouseRequest
+
+Logic:
+
+Tìm Warehouse theo {id}. Nếu không tìm thấy, trả về 404 Not Found.
+
+Xác thực userId từ WarehouseRequest: nếu userId thay đổi, userId mới phải tồn tại trong bảng users. Nếu không, trả về 400 Bad Request.
+
+Chỉ cập nhật các trường: name, contactPerson, phone, userId.
+
+Cảnh báo: Không được phép cập nhật stock hoặc totalProducts từ API này.
+
+Response: 200 OK - Trả về WarehouseResponse của kho vừa cập nhật.
+
+4. DELETE (Xóa mềm kho)
+Endpoint: DELETE /api/warehouses/{id}
+
+Logic:
+
+Tìm Warehouse theo {id}. Nếu không tìm thấy, trả về 404 Not Found.
+
+Nếu status đã là 'DELETE', trả về 204 No Content.
+
+Kiểm tra nghiệp vụ:
+
+Kiểm tra warehouse.stock.
+
+Nếu stock > 0, trả về 409 Conflict với message "Không thể xóa kho vì vẫn còn tồn hàng."
+
+Nếu stock == 0 (an toàn để xóa):
+
+Cập nhật status = 'DELETE'.
+
+Response: 204 No Content.
+
+
+Quy tắc nghiệp vụ cốt lõi (Bắt buộc):
+
+Soft Delete (Xóa Mềm): Bảng warehouses có nhiều khóa ngoại tham chiếu đến. Do đó, DELETE API không được xóa vật lý. Thay vào đó, phải cập nhật status = 'DELETE'.
+
+Trường Tổng hợp (Summary Fields): Các trường total_products và stock là dữ liệu tổng hợp, được tính toán từ các nghiệp vụ khác (như manage_stock, sales, purchases). API Warehouse (cả CREATE và UPDATE) không được phép cho người dùng tự ý điền hay thay đổi giá trị của các trường này.
+
+Trường Bị Bỏ qua: Trường qty không rõ ràng và bị trùng lặp với stock. Bỏ qua trường này trong mọi logic (không đọc, không ghi).
+
+Khóa ngoại user_id: Luôn phải xác thực user_id có tồn tại trong bảng users hay không.

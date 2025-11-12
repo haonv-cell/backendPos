@@ -86,6 +86,7 @@ public class CustomerService {
                 .id(user.getId())
                 .code(user.getCode())
                 .name(user.getName())
+                .companyName(user.getCompanyName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .country(user.getCountry())
