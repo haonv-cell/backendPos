@@ -8,12 +8,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface SupplierRepository extends JpaRepository<Supplier, Integer> {
 
     Page<Supplier> findByStatus(String status, Pageable pageable);
 
     Page<Supplier> findByStatusNot(String status, Pageable pageable);
+
+    Optional<Supplier> findByContactEmail(String contactEmail);
 
     @Query("SELECT s FROM Supplier s WHERE s.status != 'DELETED' AND (" +
             "LOWER(s.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +

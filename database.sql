@@ -48,57 +48,6 @@ create table warehouses
 alter table warehouses
     owner to postgres;
 
-create table products
-(
-    id            serial
-        primary key,
-    sku           varchar(20)
-        unique,
-    name          varchar(150)   not null,
-    category      varchar(100),
-    brand         varchar(100),
-    price         numeric(10, 2) not null,
-    quantity      integer        default 0,
-    total_ordered integer        default 0,
-    revenue       numeric(10, 2) default 0,
-    status        varchar(20)    default 'active'::character varying
-);
-
-alter table products
-    owner to postgres;
-
-create table sales
-(
-    id           serial
-        primary key,
-    product_id   integer
-        references products,
-    warehouse_id integer
-        references warehouses,
-    sold_qty     integer        default 0,
-    sold_amount  numeric(10, 2) default 0,
-    date         timestamp      default CURRENT_TIMESTAMP
-);
-
-alter table sales
-    owner to postgres;
-
-create table purchases
-(
-    id              serial
-        primary key,
-    product_id      integer
-        references products,
-    warehouse_id    integer
-        references warehouses,
-    purchase_qty    integer        default 0,
-    purchase_amount numeric(10, 2) default 0,
-    purchase_date   timestamp      default CURRENT_TIMESTAMP
-);
-
-alter table purchases
-    owner to postgres;
-
 create table invoices
 (
     id             serial
@@ -153,6 +102,187 @@ create table supplier_reports
 alter table supplier_reports
     owner to postgres;
 
+create table categories
+(
+    id         serial
+        primary key,
+    name       varchar(100) not null,
+    slug       varchar(100)
+        unique,
+    created_at timestamp   default CURRENT_TIMESTAMP,
+    status     varchar(20) default 'active'::character varying
+);
+
+alter table categories
+    owner to postgres;
+
+create index idx_categories_status
+    on categories (status);
+
+create table sub_categories
+(
+    id          serial
+        primary key,
+    name        varchar(100) not null,
+    category_id integer
+        references categories,
+    code        varchar(50)  not null
+        unique,
+    description text,
+    created_at  timestamp   default CURRENT_TIMESTAMP,
+    status      varchar(20) default 'active'::character varying,
+    image_url   varchar(500)
+);
+
+comment on column sub_categories.image_url is 'Sub category image URL';
+
+alter table sub_categories
+    owner to postgres;
+
+create index idx_sub_categories_category_id
+    on sub_categories (category_id);
+
+create index idx_sub_categories_status
+    on sub_categories (status);
+
+create table brands
+(
+    id         serial
+        primary key,
+    name       varchar(100) not null,
+    created_at timestamp   default CURRENT_TIMESTAMP,
+    status     varchar(20) default 'active'::character varying,
+    image_url  varchar(500)
+);
+
+comment on column brands.image_url is 'Brand logo/image URL';
+
+alter table brands
+    owner to postgres;
+
+create index idx_brands_status
+    on brands (status);
+
+create table units
+(
+    id             serial
+        primary key,
+    name           varchar(50) not null,
+    short_name     varchar(10),
+    created_at     timestamp   default CURRENT_TIMESTAMP,
+    status         varchar(20) default 'active'::character varying,
+    no_of_products integer     default 0
+);
+
+comment on column units.no_of_products is 'Number of products using this unit';
+
+alter table units
+    owner to postgres;
+
+create table products
+(
+    id                serial
+        primary key,
+    sku               varchar(20)
+        unique,
+    name              varchar(150)   not null,
+    category          varchar(100),
+    brand             varchar(100),
+    price             numeric(10, 2) not null,
+    quantity          integer        default 0,
+    total_ordered     integer        default 0,
+    revenue           numeric(10, 2) default 0,
+    status            varchar(20)    default 'active'::character varying,
+    unit_id           integer
+        references units,
+    sub_category_id   integer
+        references sub_categories,
+    created_by        integer
+        references users,
+    image_url         varchar(500),
+    manufactured_date date,
+    expired_date      date,
+    qty_alert         integer        default 10,
+    created_at        timestamp      default CURRENT_TIMESTAMP,
+    updated_at        timestamp      default CURRENT_TIMESTAMP
+);
+
+comment on column products.unit_id is 'Foreign key to units table';
+
+comment on column products.sub_category_id is 'Foreign key to sub_categories table';
+
+comment on column products.created_by is 'User who created this product';
+
+comment on column products.image_url is 'Product image URL';
+
+comment on column products.manufactured_date is 'Product manufacturing date';
+
+comment on column products.expired_date is 'Product expiration date';
+
+comment on column products.qty_alert is 'Minimum quantity threshold for low stock alert';
+
+alter table products
+    owner to postgres;
+
+create index idx_products_unit_id
+    on products (unit_id);
+
+create index idx_products_sub_category_id
+    on products (sub_category_id);
+
+create index idx_products_created_by
+    on products (created_by);
+
+create index idx_products_expired_date
+    on products (expired_date);
+
+create index idx_products_category
+    on products (category);
+
+create index idx_products_brand
+    on products (brand);
+
+create index idx_products_status
+    on products (status);
+
+create trigger trg_update_unit_product_count
+    after insert or update or delete
+    on products
+    for each row
+execute procedure update_unit_product_count();
+
+create table sales
+(
+    id           serial
+        primary key,
+    product_id   integer
+        references products,
+    warehouse_id integer
+        references warehouses,
+    sold_qty     integer        default 0,
+    sold_amount  numeric(10, 2) default 0,
+    date         timestamp      default CURRENT_TIMESTAMP
+);
+
+alter table sales
+    owner to postgres;
+
+create table purchases
+(
+    id              serial
+        primary key,
+    product_id      integer
+        references products,
+    warehouse_id    integer
+        references warehouses,
+    purchase_qty    integer        default 0,
+    purchase_amount numeric(10, 2) default 0,
+    purchase_date   timestamp      default CURRENT_TIMESTAMP
+);
+
+alter table purchases
+    owner to postgres;
+
 create table stock_adjustment
 (
     id              serial
@@ -196,61 +326,8 @@ create table stock_transfer
 alter table stock_transfer
     owner to postgres;
 
-create table categories
-(
-    id         serial
-        primary key,
-    name       varchar(100) not null,
-    slug       varchar(100)
-        unique,
-    created_at timestamp   default CURRENT_TIMESTAMP,
-    status     varchar(20) default 'active'::character varying
-);
-
-alter table categories
-    owner to postgres;
-
-create table sub_categories
-(
-    id          serial
-        primary key,
-    name        varchar(100) not null,
-    category_id integer
-        references categories,
-    code        varchar(50)  not null
-        unique,
-    description text,
-    created_at  timestamp   default CURRENT_TIMESTAMP,
-    status      varchar(20) default 'active'::character varying
-);
-
-alter table sub_categories
-    owner to postgres;
-
-create table brands
-(
-    id         serial
-        primary key,
-    name       varchar(100) not null,
-    created_at timestamp   default CURRENT_TIMESTAMP,
-    status     varchar(20) default 'active'::character varying
-);
-
-alter table brands
-    owner to postgres;
-
-create table units
-(
-    id         serial
-        primary key,
-    name       varchar(50) not null,
-    short_name varchar(10),
-    created_at timestamp   default CURRENT_TIMESTAMP,
-    status     varchar(20) default 'active'::character varying
-);
-
-alter table units
-    owner to postgres;
+create index idx_units_status
+    on units (status);
 
 create table variant_attributes
 (
@@ -259,24 +336,39 @@ create table variant_attributes
     name       varchar(100) not null,
     values     text[],
     created_at timestamp   default CURRENT_TIMESTAMP,
-    status     varchar(20) default 'active'::character varying
+    status     varchar(20) default 'active'::character varying,
+    image_url  varchar(500)
 );
+
+comment on column variant_attributes.image_url is 'Image URL for variant attribute';
 
 alter table variant_attributes
     owner to postgres;
 
+create index idx_variant_attributes_status
+    on variant_attributes (status);
+
 create table warranties
 (
-    id          serial
+    id            serial
         primary key,
-    name        varchar(100) not null,
-    description text,
-    duration    integer,
-    status      varchar(20) default 'active'::character varying
+    name          varchar(100) not null,
+    description   text,
+    duration      integer,
+    status        varchar(20) default 'active'::character varying,
+    duration_unit varchar(20) default 'months'::character varying
+        constraint warranties_duration_unit_check
+            check ((duration_unit)::text = ANY
+                   ((ARRAY ['months'::character varying, 'years'::character varying])::text[]))
 );
+
+comment on column warranties.duration_unit is 'Unit of warranty duration: months or years';
 
 alter table warranties
     owner to postgres;
+
+create index idx_warranties_status
+    on warranties (status);
 
 create table product_warranties
 (
@@ -370,8 +462,11 @@ create table manage_stock
     person_id    integer
         references users,
     store_id     integer
-        references stores
+        references stores,
+    qty_alert    integer   default 10
 );
+
+comment on column manage_stock.qty_alert is 'Low stock alert threshold for this warehouse/store';
 
 alter table manage_stock
     owner to postgres;

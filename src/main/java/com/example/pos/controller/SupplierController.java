@@ -1,8 +1,10 @@
 package com.example.pos.controller;
 
 import com.example.pos.dto.CreateSupplierRequest;
+import com.example.pos.dto.MessageResponse;
 import com.example.pos.dto.SupplierDTO;
 import com.example.pos.dto.SupplierListResponse;
+import com.example.pos.dto.UpdateSupplierRequest;
 import com.example.pos.service.SupplierService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +52,36 @@ public class SupplierController {
         SupplierDTO supplierDTO = supplierService.createSupplier(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(supplierDTO);
     }
+
+    /**
+     * Update an existing supplier
+     * Only accessible by ADMIN role
+     *
+     * @param id Supplier ID
+     * @param request Update request with new data
+     * @return Updated SupplierDTO
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SupplierDTO> updateSupplier(
+            @PathVariable Integer id,
+            @Valid @RequestBody UpdateSupplierRequest request
+    ) {
+        SupplierDTO supplierDTO = supplierService.updateSupplier(id, request);
+        return ResponseEntity.ok(supplierDTO);
+    }
+
+    /**
+     * Delete a supplier (soft delete)
+     * Only accessible by ADMIN role
+     *
+     * @param id Supplier ID
+     * @return Success message
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageResponse> deleteSupplier(@PathVariable Integer id) {
+        MessageResponse response = supplierService.deleteSupplier(id);
+        return ResponseEntity.ok(response);
+    }
 }
-
-
