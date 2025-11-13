@@ -3,6 +3,8 @@ package com.example.pos.controller;
 import com.example.pos.dto.BillerDTO;
 import com.example.pos.dto.BillerListResponse;
 import com.example.pos.dto.CreateBillerRequest;
+import com.example.pos.dto.MessageResponse;
+import com.example.pos.dto.UpdateBillerRequest;
 import com.example.pos.service.BillerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +51,38 @@ public class BillerController {
     public ResponseEntity<BillerDTO> createBiller(@Valid @RequestBody CreateBillerRequest request) {
         BillerDTO billerDTO = billerService.createBiller(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(billerDTO);
+    }
+
+    /**
+     * Update an existing biller
+     * Only accessible by ADMIN role
+     *
+     * @param id Biller ID
+     * @param request Update request with new data
+     * @return Updated BillerDTO
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BillerDTO> updateBiller(
+            @PathVariable Integer id,
+            @Valid @RequestBody UpdateBillerRequest request
+    ) {
+        BillerDTO billerDTO = billerService.updateBiller(id, request);
+        return ResponseEntity.ok(billerDTO);
+    }
+
+    /**
+     * Delete a biller (soft delete)
+     * Only accessible by ADMIN role
+     *
+     * @param id Biller ID
+     * @return Success message
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageResponse> deleteBiller(@PathVariable Integer id) {
+        MessageResponse response = billerService.deleteBiller(id);
+        return ResponseEntity.ok(response);
     }
 }
 

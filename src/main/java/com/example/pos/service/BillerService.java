@@ -3,10 +3,13 @@ package com.example.pos.service;
 import com.example.pos.dto.BillerDTO;
 import com.example.pos.dto.BillerListResponse;
 import com.example.pos.dto.CreateBillerRequest;
+import com.example.pos.dto.MessageResponse;
+import com.example.pos.dto.UpdateBillerRequest;
 import com.example.pos.entity.AuthProvider;
 import com.example.pos.entity.Role;
 import com.example.pos.entity.User;
 import com.example.pos.exception.BadRequestException;
+import com.example.pos.exception.ResourceNotFoundException;
 import com.example.pos.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -113,6 +116,74 @@ public class BillerService {
         return UUID.randomUUID().toString().substring(0, 12);
     }
 
+    @Transactional
+    public BillerDTO updateBiller(Integer id, UpdateBillerRequest request) {
+        // Find biller
+        User biller = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Biller", "id", id));
+
+        // Check if user is actually a biller
+        if (biller.getRole() != Role.BILLER) {
+            throw new BadRequestException("User with ID " + id + " is not a biller");
+        }
+
+        // Check if deleted
+        if ("DELETED".equalsIgnoreCase(biller.getStatus())) {
+            throw new ResourceNotFoundException("Biller", "id", id);
+        }
+
+        // Validate email uniqueness (if changed)
+        if (request.getEmail() != null && !request.getEmail().equals(biller.getEmail())) {
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new BadRequestException("Email address already in use.");
+            }
+            biller.setEmail(request.getEmail());
+        }
+
+        // Update fields if provided
+        if (request.getName() != null) {
+            biller.setName(request.getName());
+        }
+        if (request.getPhone() != null) {
+            biller.setPhone(request.getPhone());
+        }
+        if (request.getCountry() != null) {
+            biller.setCountry(request.getCountry());
+        }
+        if (request.getCompanyName() != null) {
+            biller.setCompanyName(request.getCompanyName());
+        }
+        if (request.getStatus() != null) {
+            biller.setStatus(request.getStatus());
+        }
+
+        User updatedBiller = userRepository.save(biller);
+        return convertToDTO(updatedBiller);
+    }
+
+    @Transactional
+    public MessageResponse deleteBiller(Integer id) {
+        // Find biller
+        User biller = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Biller", "id", id));
+
+        // Check if user is actually a biller
+        if (biller.getRole() != Role.BILLER) {
+            throw new BadRequestException("User with ID " + id + " is not a biller");
+        }
+
+        // Check if already deleted
+        if ("DELETED".equalsIgnoreCase(biller.getStatus())) {
+            throw new ResourceNotFoundException("Biller", "id", id);
+        }
+
+        // Soft delete
+        biller.setStatus("DELETED");
+        userRepository.save(biller);
+
+        return MessageResponse.of("Biller deleted successfully");
+    }
+
     private BillerDTO convertToDTO(User user) {
         return BillerDTO.builder()
                 .id(user.getId())
@@ -121,6 +192,7 @@ public class BillerService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .country(user.getCountry())
+                .companyName(user.getCompanyName())
                 .status(user.getStatus())
                 .imageUrl(user.getImageUrl())
                 .createdAt(user.getCreatedAt())
