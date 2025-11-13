@@ -1,0 +1,222 @@
+### Store API Testing
+### Base URL: http://localhost:8080/api/stores
+### Authentication: ADMIN role required
+
+### 1. Login as Admin to get JWT token
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+
+### 2. Create a STORE_OWNER user first (required for store management)
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Store Owner 1",
+  "email": "owner1@example.com",
+  "password": "Owner123!",
+  "phone": "0901234567",
+  "role": "STORE_OWNER"
+}
+
+### 3. Create another STORE_OWNER
+POST http://localhost:8080/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Store Owner 2",
+  "email": "owner2@example.com",
+  "password": "Owner123!",
+  "phone": "0902345678",
+  "role": "STORE_OWNER"
+}
+
+### 4. Create a Warehouse first (required for store)
+POST http://localhost:8080/api/warehouses
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Warehouse Hanoi",
+  "contactPerson": "Nguyen Van A",
+  "phone": "0241234567",
+  "userId": 1
+}
+
+### 5. Create Store - Success (with STORE_OWNER user)
+POST http://localhost:8080/api/stores
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "code": "ST001",
+  "name": "Electro Mart - Cau Giay",
+  "email": "caugiay@electromart.com",
+  "phone": "0243456789",
+  "address": "123 Cau Giay Street",
+  "city": "Hanoi",
+  "country": "Vietnam",
+  "warehouseId": 1,
+  "userId": 2
+}
+
+### 6. Create Store - Fail (user is not STORE_OWNER)
+POST http://localhost:8080/api/stores
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Test Store",
+  "email": "test@store.com",
+  "warehouseId": 1,
+  "userId": 1
+}
+
+### 7. Create another Store
+POST http://localhost:8080/api/stores
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "code": "ST002",
+  "name": "Quantum Gadgets - Dong Da",
+  "email": "dongda@quantumgadgets.com",
+  "phone": "0245678901",
+  "address": "456 Dong Da Street",
+  "city": "Hanoi",
+  "country": "Vietnam",
+  "warehouseId": 1,
+  "userId": 3
+}
+
+### 8. Get all stores (default pagination)
+GET http://localhost:8080/api/stores
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### 9. Get stores with pagination
+GET http://localhost:8080/api/stores?page=0&size=5
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### 10. Search stores by name
+GET http://localhost:8080/api/stores?search=Electro
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### 11. Search stores by email
+GET http://localhost:8080/api/stores?search=quantum
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### 12. Filter stores by status
+GET http://localhost:8080/api/stores?status=active
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### 13. Search + Filter combined
+GET http://localhost:8080/api/stores?search=Hanoi&status=active
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### 14. Sort stores by name ascending
+GET http://localhost:8080/api/stores?sortBy=name&sortDir=asc
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### 15. Update store - Success
+PUT http://localhost:8080/api/stores/1
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Electro Mart - Cau Giay (Updated)",
+  "phone": "0249999999",
+  "address": "789 New Address, Cau Giay",
+  "city": "Hanoi"
+}
+
+### 16. Update store - Change userId to another STORE_OWNER
+PUT http://localhost:8080/api/stores/1
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "userId": 3
+}
+
+### 17. Update store - Fail (change userId to non-STORE_OWNER)
+PUT http://localhost:8080/api/stores/1
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "userId": 1
+}
+
+### 18. Delete store - Success (no stock)
+DELETE http://localhost:8080/api/stores/2
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### 19. Delete store - Fail (has stock > 0)
+# First, you need to add stock to the store via manage_stock
+# Then try to delete - should fail with 409 Conflict
+DELETE http://localhost:8080/api/stores/1
+Authorization: Bearer YOUR_ADMIN_TOKEN
+
+### 20. Test duplicate email validation
+POST http://localhost:8080/api/stores
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Duplicate Email Store",
+  "email": "caugiay@electromart.com",
+  "warehouseId": 1,
+  "userId": 2
+}
+
+### 21. Test duplicate code validation
+POST http://localhost:8080/api/stores
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "code": "ST001",
+  "name": "Duplicate Code Store",
+  "email": "newstore@example.com",
+  "warehouseId": 1,
+  "userId": 2
+}
+
+### 22. Test with deleted warehouse (should fail)
+# First delete a warehouse, then try to create store with that warehouse
+POST http://localhost:8080/api/stores
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Test Store",
+  "email": "test@store.com",
+  "warehouseId": 999,
+  "userId": 2
+}
+
+### 23. Test validation - missing required fields
+POST http://localhost:8080/api/stores
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Incomplete Store"
+}
+
+### 24. Test validation - invalid email format
+POST http://localhost:8080/api/stores
+Authorization: Bearer YOUR_ADMIN_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Invalid Email Store",
+  "email": "not-an-email",
+  "warehouseId": 1,
+  "userId": 2
+}
+

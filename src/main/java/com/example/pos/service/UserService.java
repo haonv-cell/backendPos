@@ -3,9 +3,11 @@ package com.example.pos.service;
 import com.example.pos.dto.UpdateUserRequest;
 import com.example.pos.dto.UserDTO;
 import com.example.pos.entity.AuthProvider;
+import com.example.pos.entity.Store;
 import com.example.pos.entity.User;
 import com.example.pos.exception.BadRequestException;
 import com.example.pos.exception.ResourceNotFoundException;
+import com.example.pos.repository.StoreRepository;
 import com.example.pos.repository.UserRepository;
 import com.example.pos.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +16,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import com.example.pos.dto.MessageResponse;
+
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final StoreRepository storeRepository;
 
     @Transactional(readOnly = true)
     public UserDTO getCurrentUser(Authentication authentication) {
@@ -67,8 +73,16 @@ public class UserService {
         // Validate data integrity before update
         validateUserDataIntegrity(user);
 
+        // Track if name changed for syncing stores
+        boolean nameChanged = false;
+        String newName = null;
+
         // Update only allowed fields
         if (StringUtils.hasText(request.getName())) {
+            if (!request.getName().equals(user.getName())) {
+                nameChanged = true;
+                newName = request.getName();
+            }
             user.setName(request.getName());
         }
 
@@ -98,6 +112,12 @@ public class UserService {
 
         // Save and return
         User updatedUser = userRepository.save(user);
+
+        // Sync userName in all stores if name changed
+        if (nameChanged) {
+            syncUserNameInStores(id, newName);
+        }
+
         return convertToDTO(updatedUser);
     }
 
@@ -119,6 +139,18 @@ public class UserService {
                 "Invalid account state: Local account is missing password. " +
                 "Please contact support or reset your password."
             );
+        }
+    }
+
+    /**
+     * Sync userName in all stores when user name changes
+     */
+    private void syncUserNameInStores(Integer userId, String newUserName) {
+        List<Store> stores = storeRepository.findByUserId(userId);
+
+        if (!stores.isEmpty()) {
+            stores.forEach(store -> store.setUserName(newUserName));
+            storeRepository.saveAll(stores);
         }
     }
 

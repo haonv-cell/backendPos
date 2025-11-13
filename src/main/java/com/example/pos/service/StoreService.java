@@ -133,10 +133,11 @@ public class StoreService {
             );
         }
 
-        // Create store entity
+        // Create store entity with userName from User
         Store store = Store.builder()
                 .code(request.getCode())
                 .name(request.getName())
+                .userName(user.getName())  // Set userName from User entity
                 .email(request.getEmail())
                 .phone(request.getPhone())
                 .address(request.getAddress())
@@ -205,6 +206,7 @@ public class StoreService {
             validateStoreOwnerRole(user);
 
             store.setUserId(request.getUserId());
+            store.setUserName(user.getName());  // Update userName when userId changes
         }
 
         // Validate warehouseId if changed
@@ -304,15 +306,29 @@ public class StoreService {
     }
 
     private StoreDTO convertToDTO(Store store) {
-        String userName = null;
+        String userName = store.getUserName();  // Get from database field first
         String warehouseName = null;
 
-        if (store.getUser() != null) {
-            userName = store.getUser().getName();
+        // Fallback: Get userName from User relationship if not in database
+        if (userName == null) {
+            if (store.getUser() != null) {
+                userName = store.getUser().getName();
+            } else if (store.getUserId() != null) {
+                // Last resort: fetch user manually if relationship not loaded
+                userName = userRepository.findById(store.getUserId())
+                        .map(User::getName)
+                        .orElse(null);
+            }
         }
 
+        // Get warehouseName from Warehouse relationship or fetch manually
         if (store.getWarehouse() != null) {
             warehouseName = store.getWarehouse().getName();
+        } else if (store.getWarehouseId() != null) {
+            // Fallback: fetch warehouse manually if relationship not loaded
+            warehouseName = warehouseRepository.findById(store.getWarehouseId())
+                    .map(Warehouse::getName)
+                    .orElse(null);
         }
 
         return StoreDTO.builder()

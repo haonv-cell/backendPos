@@ -85,9 +85,9 @@ public class SupplierService {
                 .id(supplier.getId())
                 .name(supplier.getName())
                 .contactName(supplier.getContactName())
-                .contactEmail(supplier.getContactEmail())
-                .contactPhone(supplier.getContactPhone())
-                .address(supplier.getAddress())
+                .email(supplier.getContactEmail())
+                .phone(supplier.getContactPhone())
+                .country(supplier.getAddress())
                 .status(supplier.getStatus())
                 .createdAt(supplier.getCreatedAt())
                 .build();
