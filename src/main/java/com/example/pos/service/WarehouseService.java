@@ -5,6 +5,8 @@ import com.example.pos.dto.MessageResponse;
 import com.example.pos.dto.UpdateWarehouseRequest;
 import com.example.pos.dto.WarehouseDTO;
 import com.example.pos.dto.WarehouseListResponse;
+import com.example.pos.entity.Role;
+import com.example.pos.entity.User;
 import com.example.pos.entity.Warehouse;
 import com.example.pos.repository.UserRepository;
 import com.example.pos.repository.WarehouseRepository;
@@ -84,12 +86,15 @@ public class WarehouseService {
 
     @Transactional
     public WarehouseDTO createWarehouse(CreateWarehouseRequest request) {
-        // Validate userId exists
-        userRepository.findById(request.getUserId())
+        // Validate userId exists and has valid role
+        User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         "User ID " + request.getUserId() + " does not exist"
                 ));
+
+        // Validate role - only ADMIN, BILLER, STORE_OWNER can manage warehouse
+        validateUserRole(user);
 
         // Create warehouse entity
         Warehouse warehouse = Warehouse.builder()
@@ -119,11 +124,15 @@ public class WarehouseService {
 
         // Validate userId if changed
         if (request.getUserId() != null && !request.getUserId().equals(warehouse.getUserId())) {
-            userRepository.findById(request.getUserId())
+            User user = userRepository.findById(request.getUserId())
                     .orElseThrow(() -> new ResponseStatusException(
                             HttpStatus.BAD_REQUEST,
                             "User ID " + request.getUserId() + " does not exist"
                     ));
+
+            // Validate role - only ADMIN, BILLER, STORE_OWNER can manage warehouse
+            validateUserRole(user);
+
             warehouse.setUserId(request.getUserId());
         }
 
@@ -170,6 +179,28 @@ public class WarehouseService {
         warehouseRepository.save(warehouse);
 
         return MessageResponse.of("Warehouse deleted successfully");
+    }
+
+    /**
+     * Validate user role for warehouse management
+     * Only ADMIN, BILLER, STORE_OWNER can manage warehouses
+     * CUSTOMER and SUPPLIER are not allowed
+     */
+    private void validateUserRole(User user) {
+        if (user.getRole() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "User does not have a role assigned"
+            );
+        }
+
+        if (user.getRole() == Role.CUSTOMER || user.getRole() == Role.SUPPLIER) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "User with role " + user.getRole() + " cannot manage warehouses. " +
+                    "Only ADMIN, BILLER, or STORE_OWNER can manage warehouses."
+            );
+        }
     }
 
     private WarehouseDTO convertToDTO(Warehouse warehouse) {
