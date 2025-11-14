@@ -1,0 +1,281 @@
+### ============================================
+### CATEGORY API TESTING
+### ============================================
+### Base URL
+@baseUrl = http://localhost:8080/api
+@token = YOUR_JWT_TOKEN_HERE
+
+### ============================================
+### 1. GET ALL CATEGORIES (Default pagination)
+### ============================================
+GET {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+
+### ============================================
+### 2. GET CATEGORIES WITH PAGINATION
+### Page 0, Size 10
+### ============================================
+GET {{baseUrl}}/categories?page=0&size=10
+Authorization: Bearer {{token}}
+
+### ============================================
+### 3. SEARCH CATEGORIES BY NAME
+### Search for "Electronics"
+### ============================================
+GET {{baseUrl}}/categories?search=Electronics
+Authorization: Bearer {{token}}
+
+### ============================================
+### 4. FILTER CATEGORIES BY STATUS
+### Get only active categories
+### ============================================
+GET {{baseUrl}}/categories?status=active
+Authorization: Bearer {{token}}
+
+### ============================================
+### 5. SEARCH + FILTER BY STATUS
+### Search "Food" in active categories only
+### ============================================
+GET {{baseUrl}}/categories?search=Food&status=active
+Authorization: Bearer {{token}}
+
+### ============================================
+### 6. SORT CATEGORIES BY NAME (Ascending)
+### ============================================
+GET {{baseUrl}}/categories?sortBy=name&sortDir=asc
+Authorization: Bearer {{token}}
+
+### ============================================
+### 7. SORT CATEGORIES BY CREATED DATE (Descending)
+### ============================================
+GET {{baseUrl}}/categories?sortBy=createdAt&sortDir=desc
+Authorization: Bearer {{token}}
+
+### ============================================
+### 8. CREATE NEW CATEGORY - Electronics (Auto-generate slug)
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Electronics"
+}
+
+### ============================================
+### 9. CREATE NEW CATEGORY - Clothing (With custom slug)
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Clothing & Fashion",
+  "slug": "clothing-fashion"
+}
+
+### ============================================
+### 10. CREATE NEW CATEGORY - Food & Beverages
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Food & Beverages"
+}
+
+### ============================================
+### 11. CREATE NEW CATEGORY - Home & Garden
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Home & Garden",
+  "slug": "home-garden"
+}
+
+### ============================================
+### 12. CREATE NEW CATEGORY - Sports & Outdoors
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Sports & Outdoors"
+}
+
+### ============================================
+### 13. CREATE NEW CATEGORY - Books & Media
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Books & Media",
+  "slug": "books-media"
+}
+
+### ============================================
+### 14. CREATE NEW CATEGORY - Health & Beauty
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Health & Beauty"
+}
+
+### ============================================
+### 15. CREATE NEW CATEGORY - Toys & Games
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Toys & Games",
+  "slug": "toys-games"
+}
+
+### ============================================
+### 16. CREATE NEW CATEGORY - Automotive
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Automotive"
+}
+
+### ============================================
+### 17. CREATE NEW CATEGORY - Office Supplies
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Office Supplies",
+  "slug": "office-supplies"
+}
+
+### ============================================
+### 18. UPDATE CATEGORY - Change Name
+### Replace {id} with actual category ID
+### ============================================
+PUT {{baseUrl}}/categories/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Electronics & Gadgets"
+}
+
+### ============================================
+### 19. UPDATE CATEGORY - Change Slug
+### Replace {id} with actual category ID
+### ============================================
+PUT {{baseUrl}}/categories/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "slug": "fashion-clothing"
+}
+
+### ============================================
+### 20. UPDATE CATEGORY - Change Status to Inactive
+### Replace {id} with actual category ID
+### ============================================
+PUT {{baseUrl}}/categories/3
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "inactive"
+}
+
+### ============================================
+### 21. UPDATE CATEGORY - Full Update
+### Replace {id} with actual category ID
+### ============================================
+PUT {{baseUrl}}/categories/4
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Home, Garden & Furniture",
+  "slug": "home-garden-furniture",
+  "status": "active"
+}
+
+### ============================================
+### 22. DELETE CATEGORY (Soft Delete)
+### Replace {id} with actual category ID
+### ============================================
+DELETE {{baseUrl}}/categories/5
+Authorization: Bearer {{token}}
+
+### ============================================
+### 23. CREATE CATEGORY - Duplicate Slug (Should Fail)
+### Test uniqueness validation
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Another Electronics",
+  "slug": "electronics"
+}
+
+### ============================================
+### 24. CREATE CATEGORY - Invalid Slug (Should Fail)
+### Test slug pattern validation
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Test Category",
+  "slug": "Invalid Slug With Spaces"
+}
+
+### ============================================
+### 25. CREATE CATEGORY - Missing Required Field (Should Fail)
+### Test validation
+### ============================================
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "slug": "test-slug"
+}
+
+### ============================================
+### 26. GET CATEGORIES - Page 2 with 5 items per page
+### ============================================
+GET {{baseUrl}}/categories?page=1&size=5
+Authorization: Bearer {{token}}
+
+### ============================================
+### 27. SEARCH CATEGORIES - Search by slug
+### ============================================
+GET {{baseUrl}}/categories?search=electronics
+Authorization: Bearer {{token}}
+
+### ============================================
+### 28. GET INACTIVE CATEGORIES
+### ============================================
+GET {{baseUrl}}/categories?status=inactive
+Authorization: Bearer {{token}}
+
