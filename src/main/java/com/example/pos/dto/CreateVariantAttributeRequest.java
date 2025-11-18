@@ -18,5 +18,7 @@ public class CreateVariantAttributeRequest {
     private String[] values;
     
     private String imageUrl;
+
+    private String status;
 }
 

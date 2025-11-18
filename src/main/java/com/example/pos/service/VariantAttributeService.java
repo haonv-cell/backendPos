@@ -84,7 +84,7 @@ public class VariantAttributeService {
                 .name(request.getName())
                 .values(request.getValues())
                 .imageUrl(request.getImageUrl())
-                .status("active")
+                .status(request.getStatus() != null ? request.getStatus() : "active")
                 .build();
 
         VariantAttribute savedVariantAttribute = variantAttributeRepository.save(variantAttribute);
