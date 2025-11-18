@@ -77,7 +77,7 @@ public class SupplierService {
                 .contactEmail(request.getEmail())
                 .contactPhone(request.getPhone())
                 .address(request.getCountry() != null ? request.getCountry() : null)
-                .status("active")
+                .status(request.getStatus() != null ? request.getStatus() : "active")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

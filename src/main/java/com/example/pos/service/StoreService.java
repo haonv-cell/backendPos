@@ -147,7 +147,7 @@ public class StoreService {
                 .userId(request.getUserId())
                 .totalProducts(0)
                 .totalStock(0)
-                .status("active")
+                .status(request.getStatus() != null ? request.getStatus() : "active")
                 .build();
 
         Store savedStore = storeRepository.save(store);

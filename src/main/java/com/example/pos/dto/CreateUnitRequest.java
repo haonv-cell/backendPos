@@ -17,5 +17,7 @@ public class CreateUnitRequest {
     
     @NotBlank(message = "Short name is required")
     private String shortName;
+
+    private String status;
 }
 

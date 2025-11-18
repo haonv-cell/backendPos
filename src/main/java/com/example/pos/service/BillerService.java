@@ -94,7 +94,7 @@ public class BillerService {
                 .companyName(request.getCompanyName())
                 .passwordHash(passwordEncoder.encode(defaultPassword))
                 .role(Role.BILLER)
-                .status("active")
+                .status(request.getStatus() != null ? request.getStatus() : "active")
                 .provider(AuthProvider.LOCAL)
                 .emailVerified(false)
                 .build();

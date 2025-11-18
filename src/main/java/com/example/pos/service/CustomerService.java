@@ -108,7 +108,7 @@ public class CustomerService {
                 .country(request.getCountry())
                 .passwordHash(passwordEncoder.encode(defaultPassword))
                 .role(Role.CUSTOMER)
-                .status("active")
+                .status(request.getStatus() != null ? request.getStatus() : "active")
                 .provider(AuthProvider.LOCAL)
                 .emailVerified(false)
                 .build();

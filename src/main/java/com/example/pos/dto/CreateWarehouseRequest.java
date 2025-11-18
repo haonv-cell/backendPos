@@ -26,5 +26,7 @@ public class CreateWarehouseRequest {
 
     @NotNull(message = "User ID is required")
     private Integer userId;
+
+    private String status;
 }
 

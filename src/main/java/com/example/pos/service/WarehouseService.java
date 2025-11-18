@@ -105,7 +105,7 @@ public class WarehouseService {
                 .totalProducts(0)
                 .stock(0)
                 .qty(0)
-                .status("active")
+                .status(request.getStatus() != null ? request.getStatus() : "active")
                 .build();
 
         Warehouse savedWarehouse = warehouseRepository.save(warehouse);

@@ -101,7 +101,7 @@ public class CategoryService {
         Category category = Category.builder()
                 .name(request.getName())
                 .slug(slug)
-                .status("active")
+                .status(request.getStatus() != null ? request.getStatus() : "active")
                 .build();
 
         Category savedCategory = categoryRepository.save(category);

@@ -83,7 +83,7 @@ public class BrandService {
         Brand brand = Brand.builder()
                 .name(request.getName())
                 .imageUrl(request.getImageUrl())
-                .status("active")
+                .status(request.getStatus() != null ? request.getStatus() : "active")
                 .build();
 
         Brand savedBrand = brandRepository.save(brand);

@@ -130,7 +130,7 @@ public class SubCategoryService {
                 .category(category) // Gán đối tượng Category
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
-                .status("active") // Mặc định là active
+                .status(request.getStatus() != null ? request.getStatus() : "active")
                 .build();
 
         // 4. Lưu và trả về DTO

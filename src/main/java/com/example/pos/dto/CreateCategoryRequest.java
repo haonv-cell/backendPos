@@ -18,5 +18,7 @@ public class CreateCategoryRequest {
     
     @Pattern(regexp = "^[a-z0-9-]*$", message = "Slug must contain only lowercase letters, numbers, and hyphens")
     private String slug;
+
+    private String status;
 }
 

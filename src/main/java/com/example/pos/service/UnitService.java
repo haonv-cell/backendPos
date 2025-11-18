@@ -86,7 +86,7 @@ public class UnitService {
                 .name(request.getName())
                 .shortName(request.getShortName())
                 .noOfProducts(0)
-                .status("active")
+                .status(request.getStatus() != null ? request.getStatus() : "active")
                 .build();
 
         Unit savedUnit = unitRepository.save(unit);

@@ -26,6 +26,8 @@ public class CreateBillerRequest {
     private String phone;
     
     private String country;
+    
+    private String status;
 }
 
 
