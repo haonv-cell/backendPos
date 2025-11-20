@@ -17,6 +17,11 @@ spring:
   flyway:
     enabled: false
 
+  # Jackson Configuration - Reject unknown properties
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
   # Mail Configuration
   mail:
     host: smtp.gmail.com
