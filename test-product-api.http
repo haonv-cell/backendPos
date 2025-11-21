@@ -1,0 +1,66 @@
+### Product API Tests
+
+@baseUrl = http://localhost:8080/api
+@adminToken = YOUR_ADMIN_JWT_TOKEN
+
+### 1. Create Product
+POST {{baseUrl}}/products
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Milk 1L",
+  "sku": "MLK-0001",
+  "slug": "milk-1l",
+  "price": 25.50,
+  "quantity": 100,
+  "unitId": 1,
+  "subCategoryId": 1,
+  "categoryId": 1,
+  "brandId": 1,
+  "storeId": 1,
+  "warehouseId": 1,
+  "itemCode": "ITEM-0001",
+  "barcodeSymbology": "code128",
+  "barcodeValue": "ITEM-0001",
+  "sellingType": "unit",
+  "productType": "single",
+  "taxType": "inclusive",
+  "discountType": "amount",
+  "discountValue": 0,
+  "description": "Fresh milk",
+  "manufacturer": "Dairy Co",
+  "manufacturedDate": "2025-01-01",
+  "expiredDate": "2025-12-31"
+}
+
+### 2. Get Products (default)
+GET {{baseUrl}}/products
+Authorization: Bearer {{adminToken}}
+
+### 3. Search by name or sku
+GET {{baseUrl}}/products?search=milk
+Authorization: Bearer {{adminToken}}
+
+### 4. Filter by category and brand
+GET {{baseUrl}}/products?categoryId=1&brandId=1
+Authorization: Bearer {{adminToken}}
+
+### 5. Sort by expiredDate ascending
+GET {{baseUrl}}/products?sortBy=expiredDate&sortDir=asc
+Authorization: Bearer {{adminToken}}
+
+### 6. Update Product
+PUT {{baseUrl}}/products/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "price": 24.90,
+  "quantity": 120,
+  "status": "active"
+}
+
+### 7. Delete Product (soft delete)
+DELETE {{baseUrl}}/products/1
+Authorization: Bearer {{adminToken}}

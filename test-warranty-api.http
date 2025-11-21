@@ -1,0 +1,43 @@
+### Warranty API Tests
+
+@baseUrl = http://localhost:8080/api
+@adminToken = YOUR_ADMIN_JWT_TOKEN
+
+### 1. Create Warranty
+POST {{baseUrl}}/warranties
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "name": "Standard Warranty",
+  "description": "Covers manufacturing defects",
+  "duration": 12,
+  "durationUnit": "months"
+}
+
+### 2. Get Warranties (default)
+GET {{baseUrl}}/warranties
+Authorization: Bearer {{adminToken}}
+
+### 3. Search by name
+GET {{baseUrl}}/warranties?search=standard
+Authorization: Bearer {{adminToken}}
+
+### 4. Filter by status
+GET {{baseUrl}}/warranties?status=active
+Authorization: Bearer {{adminToken}}
+
+### 5. Update Warranty
+PUT {{baseUrl}}/warranties/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "description": "Updated coverage",
+  "duration": 24,
+  "durationUnit": "months"
+}
+
+### 6. Delete Warranty (soft delete)
+DELETE {{baseUrl}}/warranties/1
+Authorization: Bearer {{adminToken}}
