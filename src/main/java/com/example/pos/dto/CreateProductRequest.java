@@ -35,6 +35,9 @@ public class CreateProductRequest {
     @Min(0)
     private Integer quantity;
 
+    @Min(0)
+    private Integer qtyAlert;
+
     @NotNull
     private Integer unitId;
 

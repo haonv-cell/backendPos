@@ -23,23 +23,30 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
            "(:subCategoryId IS NULL OR p.subCategoryId = :subCategoryId) AND " +
            "(:storeId IS NULL OR p.storeId = :storeId) AND " +
            "(:warehouseId IS NULL OR p.warehouseId = :warehouseId) AND " +
-           "(:productType IS NULL OR LOWER(p.productType) = LOWER(:productType)) AND " +
-           "(:sellingType IS NULL OR LOWER(p.sellingType) = LOWER(:sellingType)) AND " +
-           "(:search IS NULL OR :search = '' OR " +
-           " LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           " LOWER(p.sku) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-           " LOWER(p.itemCode) LIKE LOWER(CONCAT('%', :search, '%')))")
+           "(:productTypeLower IS NULL OR LOWER(p.productType) = :productTypeLower) AND " +
+           "(:sellingTypeLower IS NULL OR LOWER(p.sellingType) = :sellingTypeLower) AND " +
+           "(:searchLower IS NULL OR :searchLower = '' OR " +
+           " LOWER(p.name) LIKE CONCAT('%', :searchLower, '%') OR " +
+           " LOWER(p.sku) LIKE CONCAT('%', :searchLower, '%') OR " +
+           " LOWER(p.itemCode) LIKE CONCAT('%', :searchLower, '%'))")
     Page<Product> searchProducts(
             @Param("status") String status,
-            @Param("search") String search,
+            @Param("searchLower") String searchLower,
             @Param("categoryId") Integer categoryId,
             @Param("brandId") Integer brandId,
             @Param("unitId") Integer unitId,
             @Param("subCategoryId") Integer subCategoryId,
             @Param("storeId") Integer storeId,
             @Param("warehouseId") Integer warehouseId,
-            @Param("productType") String productType,
-            @Param("sellingType") String sellingType,
+            @Param("productTypeLower") String productTypeLower,
+            @Param("sellingTypeLower") String sellingTypeLower,
             Pageable pageable
     );
+
+    @Query("SELECT p FROM Product p WHERE p.status != 'DELETED' AND " +
+           "(p.qtyAlert IS NOT NULL AND p.quantity <= p.qtyAlert OR (:threshold IS NOT NULL AND p.quantity <= :threshold))")
+    Page<Product> findLowStocks(@Param("threshold") Integer threshold, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.status != 'DELETED' AND p.expiredDate IS NOT NULL AND p.expiredDate <= :today")
+    Page<Product> findExpiredProducts(@Param("today") java.time.LocalDate today, Pageable pageable);
 }

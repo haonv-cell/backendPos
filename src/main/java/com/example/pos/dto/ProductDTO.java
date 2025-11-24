@@ -20,6 +20,7 @@ public class ProductDTO {
     private String slug;
     private BigDecimal price;
     private Integer quantity;
+    private Integer qtyAlert;
     private String status;
     private Integer unitId;
     private Integer subCategoryId;
@@ -27,6 +28,12 @@ public class ProductDTO {
     private Integer brandId;
     private Integer storeId;
     private Integer warehouseId;
+    private String storeName;
+    private String warehouseName;
+    private String unitShortName;
+    private String categoryName;
+    private String brandName;
+    private String createdByName;
     private String itemCode;
     private String barcodeSymbology;
     private String barcodeValue;

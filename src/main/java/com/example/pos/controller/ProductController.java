@@ -46,7 +46,29 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}")
+    // Alias endpoint cho màn Manage Stock
+    @GetMapping("/stocks")
+    @PreAuthorize("hasAnyRole('ADMIN','BILLER','STORE_OWNER')")
+    public ResponseEntity<ProductListResponse> getManageStock(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer storeId,
+            @RequestParam(required = false) Integer warehouseId,
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) Integer brandId,
+            @RequestParam(required = false) Integer unitId,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+        ProductListResponse response = productService.getProducts(
+                page, size, search, null, categoryId, brandId, unitId, null,
+                storeId, warehouseId, null, null, sortBy, sortDir
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id:\\d+}")
     @PreAuthorize("hasAnyRole('ADMIN','BILLER','STORE_OWNER')")
     public ResponseEntity<ProductDTO> getProduct(@PathVariable Integer id) {
         ProductDTO product = productService.getProductById(id);
@@ -61,7 +83,7 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(product);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductDTO> updateProduct(@PathVariable Integer id,
                                                     @Valid @RequestBody UpdateProductRequest request) {
@@ -69,10 +91,69 @@ public class ProductController {
         return ResponseEntity.ok(updated);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponse> deleteProduct(@PathVariable Integer id) {
         productService.softDeleteProduct(id);
         return ResponseEntity.ok(MessageResponse.of("Product deleted"));
+    }
+
+    @PostMapping("/{id:\\d+}/duplicate")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDTO> duplicateProduct(@PathVariable Integer id) {
+        ProductDTO copy = productService.duplicateProduct(id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(copy);
+    }
+
+    @PutMapping("/{id:\\d+}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProductDTO> updateProductStatus(@PathVariable Integer id,
+                                                          @RequestParam String status) {
+        ProductDTO updated = productService.updateStatus(id, status);
+        return ResponseEntity.ok(updated);
+    }
+
+    @GetMapping("/low-stocks")
+    @PreAuthorize("hasAnyRole('ADMIN','BILLER','STORE_OWNER')")
+    public ResponseEntity<ProductListResponse> getLowStocks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer threshold,
+            @RequestParam(defaultValue = "quantity") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        ProductListResponse response = productService.getLowStocks(page, size, threshold, sortBy, sortDir);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/expired")
+    @PreAuthorize("hasAnyRole('ADMIN','BILLER','STORE_OWNER')")
+    public ResponseEntity<ProductListResponse> getExpiredProducts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "expiredDate") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir
+    ) {
+        ProductListResponse response = productService.getExpiredProducts(page, size, sortBy, sortDir);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id:\\d+}/barcode-data")
+    @PreAuthorize("hasAnyRole('ADMIN','BILLER','STORE_OWNER')")
+    public ResponseEntity<com.example.pos.dto.BarcodeDataResponse> getBarcodeData(@PathVariable Integer id) {
+        return ResponseEntity.ok(productService.getBarcodeData(id));
+    }
+
+    @PostMapping(value = "/import", consumes = "text/csv")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<com.example.pos.dto.ProductImportReport> importCsv(@RequestBody String csv) {
+        return ResponseEntity.ok(productService.importProductsFromCsv(csv));
+    }
+
+    @PostMapping(value = "/import-file", consumes = {"multipart/form-data"})
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<com.example.pos.dto.ProductImportReport> importCsvFile(@RequestPart("file") org.springframework.web.multipart.MultipartFile file) throws java.io.IOException {
+        String csv = new String(file.getBytes(), java.nio.charset.StandardCharsets.UTF_8);
+        return ResponseEntity.ok(productService.importProductsFromCsv(csv));
     }
 }

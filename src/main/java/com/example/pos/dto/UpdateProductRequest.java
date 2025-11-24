@@ -30,6 +30,9 @@ public class UpdateProductRequest {
     @Min(0)
     private Integer quantity;
 
+    @Min(0)
+    private Integer qtyAlert;
+
     private Integer unitId;
     private Integer subCategoryId;
     private Integer categoryId;

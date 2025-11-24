@@ -41,6 +41,10 @@ public class Product {
     private Integer quantity = 0;
 
     @Builder.Default
+    @Column(name = "qty_alert")
+    private Integer qtyAlert = 10;
+
+    @Builder.Default
     @Column(length = 20)
     private String status = "active";
 
